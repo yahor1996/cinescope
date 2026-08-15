@@ -86,3 +86,7 @@ def params_movie(created_movie):
 @pytest.fixture
 def fake_movie_id():
     return DataGenerator.generate_wrong_movie_id()
+
+@pytest.fixture
+def prefix_email():
+    return DataGenerator.generate_prefix_email()

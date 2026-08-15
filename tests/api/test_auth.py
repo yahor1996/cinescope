@@ -1,4 +1,3 @@
-import random
 from conftest import api_manager, test_user
 
 
@@ -52,7 +51,7 @@ class TestAuth:
             api_manager.auth_api.register_user(test_user, timeout=0.001)
     """
 
-    def test_register_and_delete_three_users(self, api_manager, test_user):
+    def test_register_and_delete_three_users(self, api_manager, test_user, prefix_email):
         users_count = 0
         list_users = []
         list_users_ids = []
@@ -61,7 +60,7 @@ class TestAuth:
             Генерация уникальной почты (так как будет ошибка при попытке 
             повторно зарегать юзера с теми же данными)
             """
-            test_user["email"] = str(random.randint(1, 1000)) + test_user["email"]
+            test_user["email"] = str(prefix_email) + test_user["email"]
             response = api_manager.auth_api.register_user(test_user)
             response_data = response.json()
 

@@ -84,3 +84,7 @@ class DataGenerator:
     @staticmethod
     def generate_wrong_movie_id():
         return faker.random_int(min=100000000, max=900000000)
+
+    @staticmethod
+    def generate_prefix_email():
+        return faker.random_int(min=1, max=1000)
