@@ -1,5 +1,5 @@
 from conftest import api_manager
-from config.credentials import ADMIN_USERNAME, ADMIN_PASSWORD
+from resources.user_creds import SuperAdminCreds
 
 
 class TestMovies:
@@ -21,7 +21,7 @@ class TestMovies:
         assert len(response_data["movies"]) >= 1, f"Movies count: {len(response_data["movies"])}"
 
     def test_create_movie(self, api_manager, test_movie):
-        api_manager.auth_api.authenticate((ADMIN_USERNAME, ADMIN_PASSWORD))
+        api_manager.auth_api.authenticate((SuperAdminCreds.USERNAME, SuperAdminCreds.PASSWORD))
         response = api_manager.movie_api.create_movie(test_movie)
         response_data = response.json()
 

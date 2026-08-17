@@ -2,7 +2,7 @@ import pytest
 import requests
 from utils.data_generator import DataGenerator
 from clients.api_manager import ApiManager
-from config.credentials import ADMIN_USERNAME, ADMIN_PASSWORD
+from resources.user_creds import SuperAdminCreds
 
 
 @pytest.fixture(scope="class")
@@ -42,7 +42,7 @@ def test_movie():
 
 @pytest.fixture
 def created_movie(api_manager, test_movie):
-    api_manager.auth_api.authenticate((ADMIN_USERNAME, ADMIN_PASSWORD))
+    api_manager.auth_api.authenticate((SuperAdminCreds.USERNAME, SuperAdminCreds.PASSWORD))
     response = api_manager.movie_api.create_movie(test_movie)
     response_data = response.json()
     return response_data
@@ -90,3 +90,18 @@ def fake_movie_id():
 @pytest.fixture
 def prefix_email():
     return DataGenerator.generate_prefix_email()
+
+@pytest.fixture
+def user_session():
+    user_pool = []
+
+    def _create_user_session():
+        session = requests.Session()
+        user_session = ApiManager(session)
+        user_pool.append(user_session)
+        return user_session
+
+    yield _create_user_session
+
+    for user in user_pool:
+        user.close_session()
