@@ -60,6 +60,27 @@ def common_user(user_session, super_admin, creation_user_data):
 
 
 @pytest.fixture
+def admin(user_session, super_admin, creation_user_data):
+    new_session = user_session()
+
+    admin = User(
+        creation_user_data["email"],
+        creation_user_data["password"],
+        [Roles.ADMIN.value],
+        new_session
+    )
+
+    response_data = super_admin.api.user_api.create_user(creation_user_data).json()
+    admin_data = response_data.copy()
+    admin_id = response_data["id"]
+    admin_data["roles"].append(Roles.ADMIN.value)
+
+    super_admin.api.user_api.patch_user(admin_id, admin_data)
+    admin.api.auth_api.authenticate(admin.creds)
+    return admin
+
+
+@pytest.fixture
 def user_session():
     user_pool = []
 
