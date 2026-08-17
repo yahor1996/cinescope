@@ -3,6 +3,7 @@ import requests
 from utils.data_generator import DataGenerator
 from clients.api_manager import ApiManager
 from resources.user_creds import SuperAdminCreds
+from entities.user import User
 
 
 @pytest.fixture(scope="class")
@@ -105,3 +106,36 @@ def user_session():
 
     for user in user_pool:
         user.close_session()
+
+@pytest.fixture
+def super_admin(user_session):
+    new_session = user_session()
+
+    super_admin = User(
+        SuperAdminCreds.USERNAME,
+        SuperAdminCreds.PASSWORD,
+        "[SUPER_ADMIN]",
+        new_session
+    )
+
+    super_admin.api.auth_api.authenticate(super_admin.creds)
+    return super_admin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

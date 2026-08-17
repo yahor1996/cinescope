@@ -17,19 +17,19 @@ class MovieApi(CustomRequester):
             **kwargs
         )
 
+    def get_movie_by_id(self, movie, expected_status=200, **kwargs):
+        return self.send_request(
+            method="GET",
+            endpoint=f"{MOVIES}/{movie["id"]}",
+            expected_status=expected_status,
+            **kwargs
+        )
+
     def create_movie(self, test_movie, expected_status=201, **kwargs):
         return self.send_request(
             method="POST",
             endpoint=MOVIES,
             data=test_movie,
-            expected_status=expected_status,
-            **kwargs
-        )
-
-    def get_movie_by_id(self, movie, expected_status=200, **kwargs):
-        return self.send_request(
-            method="GET",
-            endpoint=f"{MOVIES}/{movie["id"]}",
             expected_status=expected_status,
             **kwargs
         )

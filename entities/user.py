@@ -1,4 +1,4 @@
-from api.clients.api_manager import ApiManager
+from clients.api_manager import ApiManager
 
 
 class User:
