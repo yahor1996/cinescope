@@ -4,6 +4,7 @@ from utils.data_generator import DataGenerator
 from clients.api_manager import ApiManager
 from resources.user_creds import SuperAdminCreds
 from entities.user import User
+from constants.roles import Roles
 
 
 @pytest.fixture(scope="class")
@@ -26,8 +27,90 @@ def test_user(roles=None):
         "fullName": f"{DataGenerator.generate_firstname()} {DataGenerator.generate_lastname()}",
         "password": password,
         "passwordRepeat": password,
-        "roles": roles or ["USER"]
+        "roles": roles or [Roles.USER.value]
     }
+
+
+@pytest.fixture
+def creation_user_data(test_user):
+    updated_data = test_user.copy()
+    updated_data.update(
+        {
+            "verified": True,
+            "banned": False
+        }
+    )
+    return updated_data
+
+
+@pytest.fixture
+def common_user(user_session, super_admin, creation_user_data):
+    new_session = user_session()
+
+    common_user = User(
+        creation_user_data["email"],
+        creation_user_data["password"],
+        [Roles.USER.value],
+        new_session
+    )
+
+    super_admin.api.user_api.create_user(creation_user_data)
+    common_user.api.auth_api.authenticate(common_user.creds)
+    return common_user
+
+
+@pytest.fixture
+def user_session():
+    user_pool = []
+
+    def _create_user_session():
+        session = requests.Session()
+        user_session = ApiManager(session)
+        user_pool.append(user_session)
+        return user_session
+
+    yield _create_user_session
+
+    for user in user_pool:
+        user.close_session()
+
+
+@pytest.fixture
+def super_admin(user_session):
+    new_session = user_session()
+
+    super_admin = User(
+        SuperAdminCreds.USERNAME,
+        SuperAdminCreds.PASSWORD,
+        [Roles.SUPER_ADMIN.value],
+        new_session
+    )
+
+    super_admin.api.auth_api.authenticate(super_admin.creds)
+    return super_admin
+
+
+@pytest.fixture(scope="function")
+def registered_user(api_manager, test_user):
+    response = api_manager.auth_api.register_user(test_user).json()
+    test_user["id"] = response["id"]
+    return test_user
+
+
+@pytest.fixture(scope="session")
+def unauthenticated_api_manager(registered_user):
+    session = requests.Session()
+    yield ApiManager(session)
+    session.close()
+
+
+@pytest.fixture(scope="function")
+def authenticated_user(api_manager, test_user):
+    response = api_manager.auth_api.register_user(test_user)
+    response_data = response.json()
+    api_manager.auth_api.authenticate((test_user["email"], test_user["password"]))
+    return response_data
+
 
 @pytest.fixture
 def test_movie():
@@ -55,26 +138,6 @@ def patch_movie_data():
         "price": DataGenerator.generate_movie_price()
     }
 
-@pytest.fixture(scope="function")
-def registered_user(api_manager, test_user):
-    response = api_manager.auth_api.register_user(test_user).json()
-    test_user["id"] = response["id"]
-    return test_user
-
-
-@pytest.fixture(scope="session")
-def unauthenticated_api_manager(registered_user):
-    session = requests.Session()
-    yield ApiManager(session)
-    session.close()
-
-
-@pytest.fixture(scope="function")
-def authenticated_user(api_manager, test_user):
-    response = api_manager.auth_api.register_user(test_user)
-    response_data = response.json()
-    api_manager.auth_api.authenticate((test_user["email"], test_user["password"]))
-    return response_data
 
 @pytest.fixture
 def params_movie(created_movie):
@@ -92,34 +155,6 @@ def fake_movie_id():
 def prefix_email():
     return DataGenerator.generate_prefix_email()
 
-@pytest.fixture
-def user_session():
-    user_pool = []
-
-    def _create_user_session():
-        session = requests.Session()
-        user_session = ApiManager(session)
-        user_pool.append(user_session)
-        return user_session
-
-    yield _create_user_session
-
-    for user in user_pool:
-        user.close_session()
-
-@pytest.fixture
-def super_admin(user_session):
-    new_session = user_session()
-
-    super_admin = User(
-        SuperAdminCreds.USERNAME,
-        SuperAdminCreds.PASSWORD,
-        "[SUPER_ADMIN]",
-        new_session
-    )
-
-    super_admin.api.auth_api.authenticate(super_admin.creds)
-    return super_admin
 
 
 

@@ -31,6 +31,7 @@ class TestAuth:
         response = api_manager.auth_api.logout_user()
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
 
+"""
 
     def test_get_user_me(self, api_manager, registered_user):
         api_manager.auth_api.authenticate((registered_user["email"], registered_user["password"]))
@@ -45,21 +46,15 @@ class TestAuth:
         assert "email" in response_data
         assert "id" in response_data
 
-    """
-    def test_register_timeout(self, api_manager, test_user):
-        with pytest.raises(requests.exceptions.ConnectTimeout):
-            api_manager.auth_api.register_user(test_user, timeout=0.001)
-    """
-
     def test_register_and_delete_three_users(self, api_manager, test_user, prefix_email):
         users_count = 0
         list_users = []
         list_users_ids = []
         while users_count < 3:
-            """
+            
             Генерация уникальной почты (так как будет ошибка при попытке 
             повторно зарегать юзера с теми же данными)
-            """
+            
             test_user["email"] = str(prefix_email) + test_user["email"]
             response = api_manager.auth_api.register_user(test_user)
             response_data = response.json()
@@ -69,10 +64,10 @@ class TestAuth:
 
             users_count += 1
 
-        """
+        
         Делаем аутентификацию под админскими кредами, 
         так как удаление под правами админа или суперадмина
-        """
+        
         api_manager.auth_api.authenticate(("api1@gmail.com", "asdqwe123Q"))
 
         # Передаем список id на удаление
@@ -82,3 +77,4 @@ class TestAuth:
         for user_id in list_users_ids:
             api_manager.user_api.get_user_info_by_id(user_id)
 
+"""

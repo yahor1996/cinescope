@@ -1,3 +1,4 @@
+"""
 from custom_requester.custom_requester import CustomRequester
 from config.base_urls import AUTH_BASE_URL
 
@@ -35,4 +36,38 @@ class UserApi(CustomRequester):
     def delete_users(self, *user_ids, **kwargs):
         for user_id in user_ids:
             self.delete_user(user_id, **kwargs)
+"""
+
+
+from custom_requester.custom_requester import CustomRequester
+
+
+class UserApi(CustomRequester):
+    USER_BASE_URL = "https://auth.dev-cinescope.coconutqa.ru/"
+
+    def __init__(self, session):
+        self.session = session
+        super().__init__(session, base_url=self.USER_BASE_URL)
+
+    def get_user(self, user_locator, expected_status=200):
+        return self.send_request(
+            method="GET",
+            endpoint=f"user/{user_locator}",
+            expected_status=expected_status
+        )
+
+    def create_user(self, user_data, expected_status=201):
+        return self.send_request(
+            method="POST",
+            endpoint="user",
+            data=user_data,
+            expected_status=expected_status
+        )
+
+
+
+
+
+
+
 
