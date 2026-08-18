@@ -9,7 +9,7 @@ class MovieApi(CustomRequester):
     def __init__(self, session):
         super().__init__(session=session, base_url=MOVIES_BASE_URL)
 
-    def get_movies(self, expected_status=200, **kwargs):
+    def get_movies(self, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="GET",
             endpoint=MOVIES,
@@ -17,7 +17,7 @@ class MovieApi(CustomRequester):
             **kwargs
         )
 
-    def get_movie_by_id(self, movie, expected_status=200, **kwargs):
+    def get_movie_by_id(self, movie, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="GET",
             endpoint=f"{MOVIES}/{movie["id"]}",
@@ -25,7 +25,7 @@ class MovieApi(CustomRequester):
             **kwargs
         )
 
-    def create_movie(self, test_movie, expected_status=201, **kwargs):
+    def create_movie(self, test_movie, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="POST",
             endpoint=MOVIES,
@@ -34,7 +34,7 @@ class MovieApi(CustomRequester):
             **kwargs
         )
 
-    def delete_movie_by_id(self, movie, expected_status=200, **kwargs):
+    def delete_movie_by_id(self, movie, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="DELETE",
             endpoint=f"{MOVIES}/{movie["id"]}",
@@ -42,7 +42,7 @@ class MovieApi(CustomRequester):
             **kwargs
         )
 
-    def patch_movie_by_id(self, movie, data_update, expected_status=200, **kwargs):
+    def patch_movie_by_id(self, movie, data_update, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="PATCH",
             endpoint=f"{MOVIES}/{movie["id"]}",

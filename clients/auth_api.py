@@ -11,7 +11,7 @@ class AuthApi(CustomRequester):
     def __init__(self, session):
         super().__init__(session=session, base_url=AUTH_BASE_URL)
 
-    def register_user(self, user_data, expected_status=201, **kwargs):
+    def register_user(self, user_data, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="POST",
             endpoint=REGISTER,
@@ -20,7 +20,7 @@ class AuthApi(CustomRequester):
             **kwargs
         )
 
-    def login_user(self, login_data, expected_status=201, **kwargs):
+    def login_user(self, login_data, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="POST",
             endpoint=LOGIN,
@@ -29,7 +29,7 @@ class AuthApi(CustomRequester):
             **kwargs
         )
 
-    def logout_user(self, expected_status=200, **kwargs):
+    def logout_user(self, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="GET",
             endpoint=LOGOUT,

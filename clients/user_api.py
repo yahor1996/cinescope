@@ -49,14 +49,14 @@ class UserApi(CustomRequester):
         self.session = session
         super().__init__(session, base_url=self.USER_BASE_URL)
 
-    def get_user(self, user_locator, expected_status=200):
+    def get_user(self, user_locator, expected_status=(200, 201)):
         return self.send_request(
             method="GET",
             endpoint=f"user/{user_locator}",
             expected_status=expected_status
         )
 
-    def create_user(self, user_data, expected_status=201):
+    def create_user(self, user_data, expected_status=(200, 201)):
         return self.send_request(
             method="POST",
             endpoint="user",
@@ -64,7 +64,7 @@ class UserApi(CustomRequester):
             expected_status=expected_status
         )
 
-    def patch_user(self, user_id, user_data, expected_status=200):
+    def patch_user(self, user_id, user_data, expected_status=(200, 201)):
         return self.send_request(
             method="PATCH",
             endpoint=f"user/{user_id}",

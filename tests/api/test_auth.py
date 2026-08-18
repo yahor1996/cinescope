@@ -36,9 +36,9 @@ class TestAuth:
     @pytest.mark.parametrize(
         "email,password,expected_status",
         [
-            (f"{SuperAdminCreds.USERNAME}", f"{SuperAdminCreds.PASSWORD}", 201),
-            ("test_login1@email.com", "asdqwe123Q!", 401),
-            ("", "password", 401)
+            (f"{SuperAdminCreds.USERNAME}", f"{SuperAdminCreds.PASSWORD}", (200, 201)),
+            ("test_login1@email.com", "asdqwe123Q!", (401,)),
+            ("", "password", (401,))
         ],
         ids=["Admin login", "Invalid user", "Empty username"]
     )

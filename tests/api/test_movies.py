@@ -63,7 +63,7 @@ class TestMovies:
         assert response_data["id"] == created_movie["id"]
 
         # Проверяем что фильма уже нет
-        response = super_admin.api.movie_api.get_movie_by_id(created_movie, expected_status=404)
+        response = super_admin.api.movie_api.get_movie_by_id(created_movie, expected_status=(404,))
         response_data = response.json()
 
         assert response_data["message"] == "Фильм не найден"
@@ -95,7 +95,7 @@ class TestMoviesNegative:
            params={
                "pageSize": "qwerty"
            },
-           expected_status=400
+           expected_status=(400,)
        )
        response_data = response.json()
 
@@ -106,7 +106,7 @@ class TestMoviesNegative:
     def test_create_movie_negative(self, common_user, test_movie):
         response = common_user.api.movie_api.create_movie(
             test_movie=test_movie,
-            expected_status=403
+            expected_status=(403,)
         )
         response_data = response.json()
 
@@ -121,7 +121,7 @@ class TestMoviesNegative:
 
         response = common_user.api.movie_api.get_movie_by_id(
             movie=created_wrong_movie,
-            expected_status=404
+            expected_status=(404,)
         )
         response_data = response.json()
 
@@ -138,7 +138,7 @@ class TestMoviesNegative:
         # Пытаемся удалить фильм с невалидным айди
         response = super_admin.api.movie_api.delete_movie_by_id(
             movie=created_wrong_movie,
-            expected_status=404
+            expected_status=(404,)
         )
         response_data = response.json()
 
@@ -159,7 +159,7 @@ class TestMoviesNegative:
         response = super_admin.api.movie_api.patch_movie_by_id(
             movie=created_movie,
             data_update=patch_movie_data,
-            expected_status=404
+            expected_status=(404,)
         )
         response_data = response.json()
         
