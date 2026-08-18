@@ -1,4 +1,5 @@
 import pytest
+from conftest import common_user, admin, super_admin
 
 
 class TestMovies:
@@ -6,6 +7,7 @@ class TestMovies:
     # created_movie на случай если фильмов нет никаких
     def test_get_movies(self, common_user, created_movie):
         response = common_user.api.movie_api.get_movies()
+
 
     def test_get_movies_with_params(self, common_user, params_movie):
         response = common_user.api.movie_api.get_movies(
@@ -15,6 +17,7 @@ class TestMovies:
 
         assert "movies" in response_data
         assert len(response_data["movies"]) >= 1, f"Movies count: {len(response_data["movies"])}"
+
 
     @pytest.mark.parametrize(
         "price,locations,genre_id",
@@ -35,6 +38,7 @@ class TestMovies:
         assert "movies" in response_data
         assert len(response_data["movies"]) >= 1, f"Movies count: {len(response_data["movies"])}"
 
+
     def test_create_movie(self, super_admin, test_movie):
         response = super_admin.api.movie_api.create_movie(test_movie)
         response_data = response.json()
@@ -42,12 +46,14 @@ class TestMovies:
         assert "id" in response_data
         assert response_data["name"] == test_movie["name"]
 
+
     def test_get_movie_by_id(self, common_user, created_movie):
         response = common_user.api.movie_api.get_movie_by_id(created_movie)
         response_data = response.json()
 
         assert response_data["id"] == created_movie["id"], f"{response_data["id"] != {created_movie["id"]}}"
         assert response_data["name"] == created_movie["name"], f"{response_data["name"] != {created_movie["name"]}}"
+
 
     def test_delete_movie_by_id(self, super_admin, created_movie):
         # Проверяем что есть фильм
@@ -69,6 +75,41 @@ class TestMovies:
         assert response_data["message"] == "Фильм не найден"
         assert response_data["error"] == "Not Found"
         assert response_data["statusCode"] == 404
+
+
+    @pytest.mark.parametrize(
+        "user_name,expected_deleted_status,expected_get_status",
+        [
+            ("common_user", (403,), (200,)),
+            ("admin", (403,), (200,)),
+            ("super_admin", (200,), (404,))
+        ],
+        ids=["user", "admin", "super_admin"]
+    )
+    def test_delete_movie_parametrize(
+            self,
+            request,
+            user_name,
+            expected_deleted_status,
+            expected_get_status,
+            super_admin,
+            created_movie
+    ):
+
+        # Преобразуем стрингу в юзера
+        user = request.getfixturevalue(user_name)
+
+        # Проверяем что есть фильм
+        response = super_admin.api.movie_api.get_movie_by_id(created_movie)
+        response_data = response.json()
+        assert response_data["id"] == created_movie["id"]
+
+        # Удаляем фильм
+        user.api.movie_api.delete_movie_by_id(created_movie, expected_status=expected_deleted_status)
+
+        # Проверяем сработало ли удаление в зависимости от роли
+        user.api.movie_api.get_movie_by_id(created_movie, expected_status=expected_get_status)
+
 
     def test_patch_movie_by_id(self, super_admin, created_movie, patch_movie_data):
         # Проверяем что есть фильм
@@ -103,6 +144,7 @@ class TestMoviesNegative:
        assert response_data["error"] == "Bad Request"
        assert response_data["statusCode"] == 400
 
+
     def test_create_movie_negative(self, common_user, test_movie):
         response = common_user.api.movie_api.create_movie(
             test_movie=test_movie,
@@ -114,6 +156,7 @@ class TestMoviesNegative:
         assert response_data["message"] == "Forbidden resource"
         assert response_data["error"] == "Forbidden"
         assert response_data["statusCode"] == 403
+
 
     def test_get_movie_by_id_negative(self, common_user, created_movie, fake_movie_id):
         created_wrong_movie = created_movie.copy()
@@ -129,6 +172,7 @@ class TestMoviesNegative:
         assert response_data["message"] == "Фильм не найден"
         assert response_data["error"] == "Not Found"
         assert response_data["statusCode"] == 404
+
 
     def test_delete_movie_by_id_negative(self, super_admin, created_movie, fake_movie_id):
         #Создаем фильм с невалидным айди
@@ -146,6 +190,7 @@ class TestMoviesNegative:
         assert response_data["message"] == "Фильм не найден"
         assert response_data["error"] == "Not Found"
         assert response_data["statusCode"] == 404
+
 
     def test_patch_movie_by_id_negative(self, super_admin, created_movie, patch_movie_data, fake_movie_id):
         # Проверяем что есть фильм
