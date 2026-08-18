@@ -1,4 +1,6 @@
+import pytest
 from conftest import api_manager, test_user
+from resources.user_creds import SuperAdminCreds
 
 
 class TestAuth:
@@ -30,6 +32,23 @@ class TestAuth:
     def test_logout_user(self, api_manager):
         response = api_manager.auth_api.logout_user()
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+
+    @pytest.mark.parametrize(
+        "email,password,expected_status",
+        [
+            (f"{SuperAdminCreds.USERNAME}", f"{SuperAdminCreds.PASSWORD}", 201),
+            ("test_login1@email.com", "asdqwe123Q!", 401),
+            ("", "password", 401)
+        ],
+        ids=["Admin login", "Invalid user", "Empty username"]
+    )
+    def test_login(self, email, password, expected_status, api_manager):
+        login_data = {
+            "email": email,
+            "password": password
+        }
+        api_manager.auth_api.login_user(login_data=login_data, expected_status=expected_status)
+
 
 """
 

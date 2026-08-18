@@ -1,3 +1,6 @@
+import pytest
+
+
 class TestMovies:
 
     # created_movie на случай если фильмов нет никаких
@@ -7,6 +10,25 @@ class TestMovies:
     def test_get_movies_with_params(self, common_user, params_movie):
         response = common_user.api.movie_api.get_movies(
             params=params_movie
+        )
+        response_data = response.json()
+
+        assert "movies" in response_data
+        assert len(response_data["movies"]) >= 1, f"Movies count: {len(response_data["movies"])}"
+
+    @pytest.mark.parametrize(
+        "price,locations,genre_id",
+        [([1, 1000], ["MSK", "SPB"], 1)],
+        ids=["price_range_and_multi_locations"]
+    )
+    def test_get_movies_parametrize(self, price, locations, genre_id, common_user):
+        response = common_user.api.movie_api.get_movies(
+            params={
+                "minPrice": price[0],
+                "maxPrice": price[1],
+                "locations": locations,
+                "genreId": genre_id
+            }
         )
         response_data = response.json()
 
