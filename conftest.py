@@ -176,7 +176,17 @@ def fake_movie_id():
 def prefix_email():
     return DataGenerator.generate_prefix_email()
 
+@pytest.fixture
+def registration_user_data():
+    random_password = DataGenerator.generate_valid_password()
 
+    return {
+        "email": DataGenerator.generate_random_email(),
+        "fullName": f"{DataGenerator.generate_firstname()} {DataGenerator.generate_lastname()}",
+        "password": random_password,
+        "passwordRepeat": random_password,
+        "roles": [Roles.USER.value]
+    }
 
 
 
