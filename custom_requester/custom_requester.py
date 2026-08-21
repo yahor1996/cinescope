@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import time
+from pydantic import BaseModel
 
 
 class CustomRequester:
@@ -20,6 +21,7 @@ class CustomRequester:
 
         # Применяем базовые заголовки к сессии
         self.session.headers.update(self.base_headers)
+        self.session.headers = self.base_headers.copy()
 
         self.logger = logging.getLogger(__name__)
 
@@ -27,6 +29,8 @@ class CustomRequester:
     def send_request(self, method, endpoint, data=None, params=None, expected_status=(200, 201), need_logging=True, **kwargs):
         url = f"{self.base_url}{endpoint}"
         start_time = time.time()
+        if isinstance(data, BaseModel):
+            data = json.loads(data.model_dump_json(exclude_unset=True))
         response = self.session.request(method, url, json=data, params=params, **kwargs)
         elapsed_ms = round((time.time() - start_time) * 1000, 2)
 
@@ -50,6 +54,12 @@ class CustomRequester:
 
 
     def log_request_and_response(self, response, elapsed_ms):
+        """
+        Логирование запросов и ответов. Настройки логирования описаны в pytest.ini
+        Преобразует вывод в curl-like (-H хэдэеры), (-d тело)
+
+        :param response: Объект response получаемый из метода "send_request"
+        """
         try:
             request = response.request
             GREEN = '\033[32m'

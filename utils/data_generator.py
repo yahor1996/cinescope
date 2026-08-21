@@ -23,22 +23,21 @@ class DataGenerator:
 
     @staticmethod
     def generate_valid_password():
-        # Обязательные части
-        letter = random.choice(string.ascii_letters)  # хотя бы одна буква
-        digit = random.choice(string.digits)  # хотя бы одна цифра
-        special_chars = "?@#$%^&*_-+()[]{}\\/|\"',.:"  # разрешённые спецсимволы
-        spec = random.choice(special_chars)  # хотя бы один спецсимвол (если нужен)
+        # Обязательные части — с гарантиями
+        upper = random.choice(string.ascii_uppercase)  # точно заглавная
+        digit = random.choice(string.digits)  # точно цифра
+        special_chars = "?@#$%^&*_-+()[]{}\\/|\"',.:"
+        spec = random.choice(special_chars)  # точно спецсимвол
 
-        # Все разрешённые символы
+        # Остальные символы — любые разрешённые
         all_allowed = string.ascii_letters + string.digits + special_chars
-
-        length = 12  # длина между 8 и 20
-        remaining = length - 3  # минус letter, digit, spec
+        length = 12
+        remaining = length - 3  # минус upper, digit, spec
         rest = ''.join(random.choice(all_allowed) for _ in range(remaining))
 
-        password = list(letter + digit + spec + rest)
-        random.shuffle(password)
-        return ''.join(password)
+        password_chars = list(upper + digit + spec + rest)
+        random.shuffle(password_chars)
+        return ''.join(password_chars)
 
     @staticmethod
     def generate_genreId():

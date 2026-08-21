@@ -1,30 +1,33 @@
 import pytest
+
+from clients.api_manager import ApiManager
 from conftest import api_manager, test_user
+from models.base_models import RegisterUserResponse, LoginUserResponse
 from resources.user_creds import SuperAdminCreds
 
 
 class TestAuth:
 
-    def test_register_user(self, api_manager, test_user):
-        response = api_manager.auth_api.register_user(test_user, timeout=5, verify=False)
-        response_data = response.json()
+    def test_register_user(self, api_manager: ApiManager, test_user):
+        response = api_manager.auth_api.register_user(test_user)
+        register_user_response = RegisterUserResponse(**response.json())
 
-        assert response_data["email"] == test_user["email"]
-        assert "id" in response_data
-        assert "USER" in response_data["roles"]
+        assert register_user_response.email == test_user.email, "Email не совпадает"
 
 
-    def test_login_user(self, api_manager, registered_user):
+    def test_login_user(self, api_manager: ApiManager, registered_user):
+        user, password = registered_user
         login_data = {
-            "email": registered_user["email"],
-            "password": registered_user["password"]
+            "email": user.email,
+            "password": password
         }
 
         response = api_manager.auth_api.login_user(login_data)
-        response_data = response.json()
+        login_user_response = LoginUserResponse(**response.json())
 
-        assert "accessToken" in response_data
-        assert response_data["user"]["email"] == registered_user["email"]
+        assert login_user_response.user.email == user.email
+        assert login_user_response.user.fullName == user.fullName
+        assert login_user_response.user.roles == user.roles
 
         api_manager.auth_api.authenticate((login_data["email"], login_data["password"]))
 
