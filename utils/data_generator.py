@@ -111,3 +111,7 @@ class DataGenerator:
             'banned': False,
             'roles': '{USER}'
         }
+
+    @staticmethod
+    def generate_random_int(value):
+        return faker.random_int(min=1, max=value)
