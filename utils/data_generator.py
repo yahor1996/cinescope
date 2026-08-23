@@ -1,4 +1,5 @@
 import random
+import datetime
 import string
 from faker import Faker
 
@@ -25,6 +26,7 @@ class DataGenerator:
     def generate_valid_password():
         # Обязательные части — с гарантиями
         upper = random.choice(string.ascii_uppercase)  # точно заглавная
+        lower = random.choice(string.ascii_lowercase)  # точно строчная ← добавлено
         digit = random.choice(string.digits)  # точно цифра
         special_chars = "?@#$%^&*_-+()[]{}\\/|\"',.:"
         spec = random.choice(special_chars)  # точно спецсимвол
@@ -32,16 +34,16 @@ class DataGenerator:
         # Остальные символы — любые разрешённые
         all_allowed = string.ascii_letters + string.digits + special_chars
         length = 12
-        remaining = length - 3  # минус upper, digit, spec
+        remaining = length - 4  # минус upper, lower, digit, spec
         rest = ''.join(random.choice(all_allowed) for _ in range(remaining))
 
-        password_chars = list(upper + digit + spec + rest)
+        password_chars = list(upper + lower + digit + spec + rest)
         random.shuffle(password_chars)
         return ''.join(password_chars)
 
     @staticmethod
     def generate_genreId():
-        return faker.random_int(1, 1)
+        return faker.random_int(5, 9)
 
     @staticmethod
     def generate_page():
@@ -70,7 +72,7 @@ class DataGenerator:
 
     @staticmethod
     def generate_movie_description():
-        return faker.text(max_nb_chars=200)
+        return faker.text(max_nb_chars=202)
 
     @staticmethod
     def generate_movie_location():
@@ -87,3 +89,25 @@ class DataGenerator:
     @staticmethod
     def generate_prefix_email():
         return faker.random_int(min=1, max=1000)
+
+    """
+    Добавим метод в DataGenerator который сразу делает рандомные данные
+    которые можно сразу передать в метод создания юзера через БД
+    """
+
+    @staticmethod
+    def generate_user_data() -> dict:
+        """Генерирует данные для тестового пользователя"""
+        from uuid import uuid4
+
+        return {
+            'id': f'{uuid4()}',  # генерируем UUID как строку
+            'email': DataGenerator.generate_random_email(),
+            'full_name': f"{DataGenerator.generate_firstname()} {DataGenerator.generate_lastname()}",
+            'password': DataGenerator.generate_valid_password(),
+            'created_at': datetime.datetime.now(),
+            'updated_at': datetime.datetime.now(),
+            'verified': False,
+            'banned': False,
+            'roles': '{USER}'
+        }

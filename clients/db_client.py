@@ -1,5 +1,5 @@
 import psycopg2
-from resources.db_creds import UserDataBaseCreds
+from resources.db_creds import MoviesDbCreds
 
 
 def connect_to_db_movies():
@@ -10,11 +10,11 @@ def connect_to_db_movies():
     try:
         # Подключение к базе данных
         connection = psycopg2.connect(
-            dbname=UserDataBaseCreds.DATABASE_NAME,
-            user=UserDataBaseCreds.USERNAME,
-            password=UserDataBaseCreds.PASSWORD,
-            host=UserDataBaseCreds.HOST,
-            port=UserDataBaseCreds.PORT
+            dbname=MoviesDbCreds.DATABASE_NAME,
+            user=MoviesDbCreds.USERNAME,
+            password=MoviesDbCreds.PASSWORD,
+            host=MoviesDbCreds.HOST,
+            port=MoviesDbCreds.PORT
         )
 
         print("Подключение успешно установлено")

@@ -21,7 +21,7 @@ class TestMovies:
 
     @pytest.mark.parametrize(
         "price,locations,genre_id",
-        [([1, 1000], ["MSK", "SPB"], 1)],
+        [([1, 1000], ["MSK", "SPB"], 5)],
         ids=["price_range_and_multi_locations"]
     )
     def test_get_movies_parametrize(self, price, locations, genre_id, common_user):
