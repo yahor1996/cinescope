@@ -1,3 +1,4 @@
+import time
 import pytest
 import requests
 from utils.data_generator import DataGenerator
@@ -225,6 +226,10 @@ def created_test_user(db_helper):
         db_helper.delete_user(user)
 
 
+@pytest.fixture
+def delay_between_retries():
+    time.sleep(2)  # Задержка в 2 секунды\ это не обязательно но
+    yield          # нужно понимать что такая возможность имеется
 
 
 
