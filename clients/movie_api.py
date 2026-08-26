@@ -20,7 +20,7 @@ class MovieApi(CustomRequester):
     def get_movie_by_id(self, movie, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="GET",
-            endpoint=f"{MOVIES}/{movie["id"]}",
+            endpoint=f"{MOVIES}/{movie.id}",
             expected_status=expected_status,
             **kwargs
         )
@@ -37,7 +37,7 @@ class MovieApi(CustomRequester):
     def delete_movie_by_id(self, movie, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="DELETE",
-            endpoint=f"{MOVIES}/{movie["id"]}",
+            endpoint=f"{MOVIES}/{movie.id}",
             expected_status=expected_status,
             **kwargs
         )
@@ -45,7 +45,7 @@ class MovieApi(CustomRequester):
     def patch_movie_by_id(self, movie, data_update, expected_status=(200, 201), **kwargs):
         return self.send_request(
             method="PATCH",
-            endpoint=f"{MOVIES}/{movie["id"]}",
+            endpoint=f"{MOVIES}/{movie.id}",
             data=data_update,
             expected_status=expected_status,
             **kwargs

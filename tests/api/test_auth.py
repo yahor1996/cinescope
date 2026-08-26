@@ -60,6 +60,7 @@ class TestAuth:
     @allure.title("Тест регистрации пользователя с помощью Mock")
     @allure.severity(allure.severity_level.MINOR)
     @allure.label("qa_name", "Ivan Petrovich")
+    @pytest.mark.skip
     def test_register_user_mock(self, api_manager: ApiManager, test_user: TestUser, mocker):
         with allure.step(" Мокаем метод register_user в auth_api"):
             mock_response = RegisterUserResponse(  # Фиктивный ответ

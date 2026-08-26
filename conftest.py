@@ -7,6 +7,7 @@ from resources.user_creds import SuperAdminCreds
 from entities.user import User
 from constants.roles import Roles
 from models.base_models import TestUser, RegisterUserResponse
+from models.movie_models import TestMovie, MovieCreatedResponse
 from sqlalchemy.orm import Session
 from db_requester.db_client import get_db_session
 from db_requester.db_helpers import DBHelper
@@ -138,23 +139,25 @@ def authenticated_user(api_manager, test_user):
 
 
 @pytest.fixture
-def test_movie():
-    return {
-        "name": DataGenerator.generate_movie_name(),
-        "imageUrl": DataGenerator.generate_image_url(),
-        "price": DataGenerator.generate_movie_price(),
-        "description": DataGenerator.generate_movie_description(),
-        "location": DataGenerator.generate_movie_location(),
-        "published": DataGenerator.generate_movie_is_published(),
-        "genreId": DataGenerator.generate_genreId()
-    }
+def test_movie() -> TestMovie:
+    return TestMovie(
+        name=DataGenerator.generate_movie_name(),
+        imageUrl=DataGenerator.generate_image_url(),
+        price=DataGenerator.generate_movie_price(),
+        description=DataGenerator.generate_movie_description(),
+        location=DataGenerator.generate_movie_location(),
+        published=DataGenerator.generate_movie_is_published(),
+        genreId=DataGenerator.generate_genreId()
+    )
+
 
 @pytest.fixture
 def created_movie(api_manager, test_movie):
     api_manager.auth_api.authenticate((SuperAdminCreds.USERNAME, SuperAdminCreds.PASSWORD))
     response = api_manager.movie_api.create_movie(test_movie)
-    response_data = response.json()
-    return response_data
+    response_created_movie = MovieCreatedResponse(**response.json())
+    return response_created_movie
+
 
 @pytest.fixture
 def patch_movie_data():
@@ -167,9 +170,9 @@ def patch_movie_data():
 @pytest.fixture
 def params_movie(created_movie):
     return {
-        "genreId": created_movie["genreId"],
-        "location": created_movie["location"],
-        "minPrice": created_movie["price"]
+        "genreId": created_movie.genreId,
+        "location": created_movie.location,
+        "minPrice": created_movie.price
     }
 
 @pytest.fixture

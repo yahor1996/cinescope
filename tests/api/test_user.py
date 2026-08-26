@@ -38,3 +38,4 @@ class TestUser:
 
         assert error_response.message == "Forbidden resource"
         assert error_response.error == "Forbidden"
+        assert error_response.statusCode == 403

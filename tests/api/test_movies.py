@@ -1,5 +1,7 @@
 import pytest
 from conftest import common_user, admin, super_admin
+from models.movie_models import GetMoviesResponse, MovieCreatedResponse
+from models.base_models import ErrorResponse
 
 
 class TestMovies:
@@ -7,16 +9,20 @@ class TestMovies:
     # created_movie на случай если фильмов нет никаких
     def test_get_movies(self, common_user, created_movie):
         response = common_user.api.movie_api.get_movies()
+        response_get_movies = GetMoviesResponse(**response.json())
+
+        assert len(response_get_movies.movies) > 0, "Список фильмов пуст"
+        assert response_get_movies.movies[0].id != "", "ID фильма должен быть не пустым"
+        assert response_get_movies.movies[0].name != "", "Имя фильма должно быть не пустое"
 
 
     def test_get_movies_with_params(self, common_user, params_movie):
         response = common_user.api.movie_api.get_movies(
             params=params_movie
         )
-        response_data = response.json()
+        response_get_movies = GetMoviesResponse(**response.json())
 
-        assert "movies" in response_data
-        assert len(response_data["movies"]) >= 1, f"Movies count: {len(response_data["movies"])}"
+        assert len(response_get_movies.movies) > 0, "Список фильмов пуст"
 
 
     @pytest.mark.parametrize(
@@ -33,48 +39,47 @@ class TestMovies:
                 "genreId": genre_id
             }
         )
-        response_data = response.json()
+        response_get_movies = GetMoviesResponse(**response.json())
 
-        assert "movies" in response_data
-        assert len(response_data["movies"]) >= 1, f"Movies count: {len(response_data["movies"])}"
+        assert len(response_get_movies.movies) > 0, "Список фильмов пуст"
 
 
     def test_create_movie(self, super_admin, test_movie):
         response = super_admin.api.movie_api.create_movie(test_movie)
-        response_data = response.json()
+        response_create_movie = MovieCreatedResponse(**response.json())
 
-        assert "id" in response_data
-        assert response_data["name"] == test_movie["name"]
+        assert response_create_movie.id != "", "ID фильма должен быть не пустым"
+        assert response_create_movie.name == test_movie.name
 
 
     def test_get_movie_by_id(self, common_user, created_movie):
         response = common_user.api.movie_api.get_movie_by_id(created_movie)
-        response_data = response.json()
+        response_get_movie = MovieCreatedResponse(**response.json())
 
-        assert response_data["id"] == created_movie["id"], f"{response_data["id"] != {created_movie["id"]}}"
-        assert response_data["name"] == created_movie["name"], f"{response_data["name"] != {created_movie["name"]}}"
+        assert response_get_movie.id == created_movie.id, f"{response_get_movie.id != created_movie.id}"
+        assert response_get_movie.name == created_movie.name, f"{response_get_movie.name != created_movie.name}"
 
 
     def test_delete_movie_by_id(self, super_admin, created_movie):
         # Проверяем что есть фильм
         response = super_admin.api.movie_api.get_movie_by_id(created_movie)
-        response_data = response.json()
+        response_get_movie = MovieCreatedResponse(**response.json())
 
-        assert response_data["id"] == created_movie["id"]
+        assert response_get_movie.id == created_movie.id
 
         # Удаляем фильм
         response = super_admin.api.movie_api.delete_movie_by_id(created_movie)
-        response_data = response.json()
+        response_delete_movie = MovieCreatedResponse(**response.json())
 
-        assert response_data["id"] == created_movie["id"]
+        assert response_delete_movie.id == created_movie.id
 
         # Проверяем что фильма уже нет
         response = super_admin.api.movie_api.get_movie_by_id(created_movie, expected_status=(404,))
-        response_data = response.json()
+        error_response = ErrorResponse(**response.json())
 
-        assert response_data["message"] == "Фильм не найден"
-        assert response_data["error"] == "Not Found"
-        assert response_data["statusCode"] == 404
+        assert error_response.message == "Фильм не найден"
+        assert error_response.error == "Not Found"
+        assert error_response.statusCode == 404
 
 
     @pytest.mark.parametrize(
@@ -101,11 +106,24 @@ class TestMovies:
 
         # Проверяем что есть фильм
         response = super_admin.api.movie_api.get_movie_by_id(created_movie)
-        response_data = response.json()
-        assert response_data["id"] == created_movie["id"]
+        response_get_movie = MovieCreatedResponse(**response.json())
+        assert response_get_movie.id == created_movie.id
 
         # Удаляем фильм
-        user.api.movie_api.delete_movie_by_id(created_movie, expected_status=expected_deleted_status)
+        response = user.api.movie_api.delete_movie_by_id(
+            created_movie,
+            expected_status=expected_deleted_status
+        )
+
+        # Проверка ответа через модели
+        try:
+            response_delete_movie = MovieCreatedResponse(**response.json())
+            assert response_delete_movie.id == created_movie.id
+        except Exception as e:
+            error_response = ErrorResponse(**response.json())
+            assert error_response.message == "Forbidden resource"
+            assert error_response.error == "Forbidden"
+            assert error_response.statusCode == 403
 
         # Проверяем сработало ли удаление в зависимости от роли
         user.api.movie_api.get_movie_by_id(created_movie, expected_status=expected_get_status)
@@ -114,19 +132,19 @@ class TestMovies:
     def test_patch_movie_by_id(self, super_admin, created_movie, patch_movie_data):
         # Проверяем что есть фильм
         response = super_admin.api.movie_api.get_movie_by_id(created_movie)
-        response_data = response.json()
+        response_get_movie = MovieCreatedResponse(**response.json())
 
-        assert response_data["id"] == created_movie["id"]
+        assert response_get_movie.id == created_movie.id
 
         # Обновляем фильм
         response = super_admin.api.movie_api.patch_movie_by_id(
             movie=created_movie,
             data_update=patch_movie_data
         )
-        response_data = response.json()
+        response_patch_movie = MovieCreatedResponse(**response.json())
 
-        assert response_data["name"] != created_movie["name"], f"name not changed"
-        assert response_data["price"] != created_movie["price"], f"name not changed"
+        assert response_patch_movie.name != created_movie.name, f"name not changed"
+        assert response_patch_movie.price != created_movie.price, f"price not changed"
 
 
 class TestMoviesNegative:
@@ -138,11 +156,11 @@ class TestMoviesNegative:
            },
            expected_status=(400,)
        )
-       response_data = response.json()
+       error_response = ErrorResponse(**response.json())
 
-       assert "message" in response_data
-       assert response_data["error"] == "Bad Request"
-       assert response_data["statusCode"] == 400
+       assert error_response.message != ""
+       assert error_response.error == "Bad Request"
+       assert error_response.statusCode == 400
 
 
     def test_create_movie_negative(self, common_user, test_movie):
@@ -150,54 +168,51 @@ class TestMoviesNegative:
             test_movie=test_movie,
             expected_status=(403,)
         )
-        response_data = response.json()
+        error_response = ErrorResponse(**response.json())
 
-        assert "message" in response_data
-        assert response_data["message"] == "Forbidden resource"
-        assert response_data["error"] == "Forbidden"
-        assert response_data["statusCode"] == 403
+        assert error_response.message == "Forbidden resource"
+        assert error_response.error == "Forbidden"
+        assert error_response.statusCode == 403
 
 
     def test_get_movie_by_id_negative(self, common_user, created_movie, fake_movie_id):
         created_wrong_movie = created_movie.copy()
-        created_wrong_movie["id"] = fake_movie_id
+        created_wrong_movie.id = fake_movie_id
 
         response = common_user.api.movie_api.get_movie_by_id(
             movie=created_wrong_movie,
             expected_status=(404,)
         )
-        response_data = response.json()
+        error_response = ErrorResponse(**response.json())
 
-        assert "message" in response_data
-        assert response_data["message"] == "Фильм не найден"
-        assert response_data["error"] == "Not Found"
-        assert response_data["statusCode"] == 404
+        assert error_response.message == "Фильм не найден"
+        assert error_response.error == "Not Found"
+        assert error_response.statusCode == 404
 
 
     def test_delete_movie_by_id_negative(self, super_admin, created_movie, fake_movie_id):
         #Создаем фильм с невалидным айди
         created_wrong_movie = created_movie
-        created_wrong_movie["id"] = fake_movie_id
+        created_wrong_movie.id = fake_movie_id
 
         # Пытаемся удалить фильм с невалидным айди
         response = super_admin.api.movie_api.delete_movie_by_id(
             movie=created_wrong_movie,
             expected_status=(404,)
         )
-        response_data = response.json()
+        error_response = ErrorResponse(**response.json())
 
-        assert "message" in response_data
-        assert response_data["message"] == "Фильм не найден"
-        assert response_data["error"] == "Not Found"
-        assert response_data["statusCode"] == 404
+        assert error_response.message == "Фильм не найден"
+        assert error_response.error == "Not Found"
+        assert error_response.statusCode == 404
 
 
     def test_patch_movie_by_id_negative(self, super_admin, created_movie, patch_movie_data, fake_movie_id):
         # Проверяем что есть фильм
         response = super_admin.api.movie_api.get_movie_by_id(created_movie)
-        response_data = response.json()
+        response_get_movie = MovieCreatedResponse(**response.json())
 
-        assert response_data["id"] == created_movie["id"]
+        assert response_get_movie.id == created_movie.id
 
         # Обновляем фильм
         patch_movie_data["review"] = "bad"
@@ -206,9 +221,8 @@ class TestMoviesNegative:
             data_update=patch_movie_data,
             expected_status=(404,)
         )
-        response_data = response.json()
-        
-        assert "message" in response_data
-        assert response_data["message"] == "Фильм не найден"
-        assert response_data["error"] == "Not Found"
-        assert response_data["statusCode"] == 404
+        error_response = ErrorResponse(**response.json())
+
+        assert error_response.message == "Фильм не найден"
+        assert error_response.error == "Not Found"
+        assert error_response.statusCode == 404
