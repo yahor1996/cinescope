@@ -12,6 +12,7 @@ from resources.user_creds import SuperAdminCreds
 
 class TestAuth:
 
+    @pytest.mark.auth
     def test_register_user(self, api_manager: ApiManager, test_user):
         response = api_manager.auth_api.register_user(test_user)
         register_user_response = RegisterUserResponse(**response.json())
@@ -19,6 +20,7 @@ class TestAuth:
         assert register_user_response.email == test_user.email, "Email не совпадает"
 
 
+    @pytest.mark.auth
     def test_login_user(self, api_manager: ApiManager, registered_user):
         user, password = registered_user
         login_data = {
@@ -36,9 +38,11 @@ class TestAuth:
         api_manager.auth_api.authenticate((login_data["email"], login_data["password"]))
 
 
+    @pytest.mark.auth
     def test_logout_user(self, api_manager):
         response = api_manager.auth_api.logout_user()
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+
 
     @pytest.mark.parametrize(
         "email,password,expected_status",
@@ -49,6 +53,7 @@ class TestAuth:
         ],
         ids=["Admin login", "Invalid user", "Empty username"]
     )
+    @pytest.mark.auth
     def test_login(self, email, password, expected_status, api_manager):
         login_data = {
             "email": email,

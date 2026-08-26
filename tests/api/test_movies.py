@@ -1,11 +1,16 @@
 import pytest
+import allure
 from conftest import common_user, admin, super_admin
 from models.movie_models import GetMoviesResponse, MovieCreatedResponse
 from models.base_models import ErrorResponse
 
 
+@allure.epic("Тестирование api для работы с фильмами. Позитив.")
 class TestMovies:
 
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @allure.title("Тест. Получение списка фильмов по дефолту.")
     # created_movie на случай если фильмов нет никаких
     def test_get_movies(self, common_user, created_movie):
         response = common_user.api.movie_api.get_movies()
@@ -16,6 +21,9 @@ class TestMovies:
         assert response_get_movies.movies[0].name != "", "Имя фильма должно быть не пустое"
 
 
+    @pytest.mark.api
+    @pytest.mark.regression
+    @allure.title("Тест. Получение списка фильмов по фильтрам.")
     def test_get_movies_with_params(self, common_user, params_movie):
         response = common_user.api.movie_api.get_movies(
             params=params_movie
@@ -30,6 +38,9 @@ class TestMovies:
         [([1, 1000], ["MSK", "SPB"], 5)],
         ids=["price_range_and_multi_locations"]
     )
+    @pytest.mark.api
+    @pytest.mark.regression
+    @allure.title("Тест. Получение списка фильмов. Параметризованный тест с @parametrize.")
     def test_get_movies_parametrize(self, price, locations, genre_id, common_user):
         response = common_user.api.movie_api.get_movies(
             params={
@@ -44,6 +55,9 @@ class TestMovies:
         assert len(response_get_movies.movies) > 0, "Список фильмов пуст"
 
 
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @allure.title("Тест. Создание фильма.")
     def test_create_movie(self, super_admin, test_movie):
         response = super_admin.api.movie_api.create_movie(test_movie)
         response_create_movie = MovieCreatedResponse(**response.json())
@@ -52,6 +66,9 @@ class TestMovies:
         assert response_create_movie.name == test_movie.name
 
 
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @allure.title("Тест. Получение фильма по id.")
     def test_get_movie_by_id(self, common_user, created_movie):
         response = common_user.api.movie_api.get_movie_by_id(created_movie)
         response_get_movie = MovieCreatedResponse(**response.json())
@@ -60,6 +77,9 @@ class TestMovies:
         assert response_get_movie.name == created_movie.name, f"{response_get_movie.name != created_movie.name}"
 
 
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @allure.title("Тест. Удаление фильма по id.")
     def test_delete_movie_by_id(self, super_admin, created_movie):
         # Проверяем что есть фильм
         response = super_admin.api.movie_api.get_movie_by_id(created_movie)
@@ -91,6 +111,9 @@ class TestMovies:
         ],
         ids=["user", "admin", "super_admin"]
     )
+    @pytest.mark.api
+    @pytest.mark.regression
+    @allure.title("Тест. Удаление фильма по id. Параметризованный тест с @parametrize.")
     def test_delete_movie_parametrize(
             self,
             request,
@@ -128,7 +151,9 @@ class TestMovies:
         # Проверяем сработало ли удаление в зависимости от роли
         user.api.movie_api.get_movie_by_id(created_movie, expected_status=expected_get_status)
 
-
+    @pytest.mark.api
+    @pytest.mark.smoke
+    @allure.title("Тест. Обновление данных фильма.")
     def test_patch_movie_by_id(self, super_admin, created_movie, patch_movie_data):
         # Проверяем что есть фильм
         response = super_admin.api.movie_api.get_movie_by_id(created_movie)
@@ -147,8 +172,12 @@ class TestMovies:
         assert response_patch_movie.price != created_movie.price, f"price not changed"
 
 
+@allure.epic("Тестирование api для работы с фильмами. Негатив.")
 class TestMoviesNegative:
 
+    @pytest.mark.api
+    @pytest.mark.regression
+    @allure.title("Негативный тест. Получение фильмов по невалидному фильтру.")
     def test_get_movies_negative(self, common_user):
        response = common_user.api.movie_api.get_movies(
            params={
@@ -163,6 +192,9 @@ class TestMoviesNegative:
        assert error_response.statusCode == 400
 
 
+    @pytest.mark.api
+    @pytest.mark.regression
+    @allure.title("Негативный тест. Создание фильма.")
     def test_create_movie_negative(self, common_user, test_movie):
         response = common_user.api.movie_api.create_movie(
             test_movie=test_movie,
@@ -175,6 +207,9 @@ class TestMoviesNegative:
         assert error_response.statusCode == 403
 
 
+    @pytest.mark.api
+    @pytest.mark.regression
+    @allure.title("Негативный тест. Получение фильма по id.")
     def test_get_movie_by_id_negative(self, common_user, created_movie, fake_movie_id):
         created_wrong_movie = created_movie.copy()
         created_wrong_movie.id = fake_movie_id
@@ -190,6 +225,9 @@ class TestMoviesNegative:
         assert error_response.statusCode == 404
 
 
+    @pytest.mark.api
+    @pytest.mark.regression
+    @allure.title("Негативный тест. Удаление фильма.")
     def test_delete_movie_by_id_negative(self, super_admin, created_movie, fake_movie_id):
         #Создаем фильм с невалидным айди
         created_wrong_movie = created_movie
@@ -207,6 +245,9 @@ class TestMoviesNegative:
         assert error_response.statusCode == 404
 
 
+    @pytest.mark.api
+    @pytest.mark.regression
+    @allure.title("Негативный тест. Обновление данных фильма.")
     def test_patch_movie_by_id_negative(self, super_admin, created_movie, patch_movie_data, fake_movie_id):
         # Проверяем что есть фильм
         response = super_admin.api.movie_api.get_movie_by_id(created_movie)
